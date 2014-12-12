@@ -27,6 +27,7 @@ import argparse
 # Global constants
 GB_Per_TB = 1024.0
 
+# Full list of Data Domain 990's
 ddlist=[
     ["itsusradd01m.jnj.com","Legacy"], 
     ["itsusradd02m.jnj.com","Legacy"], 
