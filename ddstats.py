@@ -3,21 +3,24 @@
 # --------------------------------------------------------------------------------------
 # Author: Chad Burkins
 # Date: 2014
-# Purpose: To pull statistics from DataDomain appliances
+# Purpose: Pulls statistics from DataDomain appliances.  The assumption is that you
+# don't have API access to the devices, simply SSH login.  Uses "expect" to login,
+# pull statistics, and summarize.
 # --------------------------------------------------------------------------------------
 
 # Requires Ubuntu package "python-dnspython"
 import dns.resolver
 
-# easy_install pip
-# pip install --upgrade PrettyTable
-# pip show PrettyTable     (you need version 0.7.2 or better)
+# Requires prettytable python library for output
+#   easy_install pip
+#   pip install --upgrade PrettyTable
+#   pip show PrettyTable     (you need version 0.7.2 or better)
 import prettytable as pt
 
 # Requires Ubuntu package "python-pexpect"
 import pexpect
 
-# These are standard Python libraries
+# Standard Python libraries
 import getpass
 import sys
 import re
@@ -312,7 +315,13 @@ parser = argparse.ArgumentParser(description='Queries DataDomain appliances for 
 parser.add_argument('-v', dest='verbose', action='store_true', help='verbose_mode')
 
 # Command-line Parameters                                                                                                                    
-parser.add_argument('--ddUsername', nargs='?', default="admin_cburkin")
+parser.add_argument('--ddUsername', required=True)
+#parser.add_argument('--ddUsername', nargs='?', default="admin_cburkin")
+
+# Optional arguments
+# When using nargs='?', ene argument will be consumed from the command line if possible, 
+#   and produced as a single item. If no command-line argument is present, the value 
+#   from default will be produced
 parser.add_argument('--failureLimit', nargs='?', default=3)
 parser.add_argument('--ddTimeout', nargs='?', default=300)
 
