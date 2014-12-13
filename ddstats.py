@@ -87,11 +87,20 @@ for ddrecord in ddlist:
 
 # --------------------------------------------------------------------------------------
 
+#  Input: The string to be printed
+#  Descr: Prints the string, but only if the user has set the verbose flag via command
+#         line
+# Output: None
+
 def vprint(print_string):
     if args.verbose:
         print "%s" % print_string
 
 # --------------------------------------------------------------------------------------
+
+#  Input: 
+#  Descr:
+# Output:
 
 def nslookup_test(dnsname):
 
