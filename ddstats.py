@@ -98,9 +98,9 @@ def vprint(print_string):
 
 # --------------------------------------------------------------------------------------
 
-#  Input: 
-#  Descr:
-# Output:
+#  Input: fully-qualified DNS sname
+#  Descr: Performs simple DNS lookup to see if we have a valid name
+# Output: Returns boolean, true if nslookup works
 
 def nslookup_test(dnsname):
 
@@ -115,6 +115,10 @@ def nslookup_test(dnsname):
     return 1
 
 # ---------------------------------------------------------------------------------------------
+
+#  Input: 
+#  Descr:
+# Output:
 
 def get_fields(stream, command, prompt_re, search_string, field_list):
 
@@ -161,6 +165,10 @@ def get_fields(stream, command, prompt_re, search_string, field_list):
     return return_list
        
 # ---------------------------------------------------------------------------------------------
+
+#  Input: 
+#  Descr:
+# Output:
 
 def dd_getinfo (username, password, ddname):
 
