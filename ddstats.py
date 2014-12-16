@@ -117,8 +117,15 @@ def nslookup_test(dnsname):
 # ---------------------------------------------------------------------------------------------
 
 #  Input: 
+#           stream: previously opened "Expect" command stream
+#          command: that we should send to the above "Expect" stream
+#        prompt_re: Regular expression that defines a healthy command prompt for the device
+#    search_string: Another RE identify which line of output we're hunting for 
+#       field_list: list of numbers denoting which fields (within the desired line) to pass back
 #  Descr:
-# Output:
+#     Sends a given command to an active "Expect" stream, hunts for the desired regular 
+#     expression within the output, and passes back the named fields
+# Output: list of desired fields from the command output
 
 def get_fields(stream, command, prompt_re, search_string, field_list):
 
@@ -140,9 +147,10 @@ def get_fields(stream, command, prompt_re, search_string, field_list):
     # Initialize empty list that will be used for function return values
     return_list = []
 
-    # Parse through the "filesys show compression" output line by line, 
+    # Line-by-line, parse through the output from the command (e.g "filesys show compression")
     for line in output:
-        # When you find the desire line (Currently Used), then parse the fields
+
+        # When you find the desired line (e.g. Currently Used), then parse the fields
         if re.search(search_string, line):
             
             # Remove the trailing newline
@@ -160,7 +168,7 @@ def get_fields(stream, command, prompt_re, search_string, field_list):
 
 
     # The "before" method should contain all the output up to the prompt
-    # For debuggin, uncommment the next line to see the whole output
+    # For debugging, uncommment the next line to see the whole output
     #print stream.before
     return return_list
        
