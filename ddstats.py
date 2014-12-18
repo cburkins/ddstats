@@ -174,9 +174,13 @@ def get_fields(stream, command, prompt_re, search_string, field_list):
        
 # ---------------------------------------------------------------------------------------------
 
-#  Input: 
-#  Descr:
-# Output:
+#  Input:
+#     username: username for login to Data Domain device
+#     password: Password for same account
+#       ddname: DNS name for the Data Domain device
+#  Descr:  Opens an "Expect" stream, and makes several calls to "get_fields", which sends commands
+#          to that open Expect stream and captures output
+# Output: A long list of relevant data fields
 
 def dd_getinfo (username, password, ddname):
 
@@ -353,12 +357,13 @@ parser.add_argument('--ddTimeout', nargs='?', default=300)
 # Get the object returned by parse_args
 args = parser.parse_args()
 
+# Prints lots of relevant information about access Data Domain's (but only if verbose is set)
 vprint(" ")
 vprint("Command Line Parameters")
 vprint("---------------------------")
 vprint("ddUsername = %s" % args.ddUsername)
 vprint("failureLimit = %d" % args.failureLimit)
-vprint("ddTimeout = %d" % args.ddTimeout)
+vprint("ddTimeout = %d seconds" % args.ddTimeout)
 vprint("verbose = %s" % args.verbose)
 vprint(" ")
 
