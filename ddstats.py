@@ -57,12 +57,13 @@ ddlist=[
 ]
 
 # Short list used for testing
-# ddlist=[
-#     ["itsusradd03m.jnj.com","Legacy"], 
-#     ["itsusradd04m.jnj.com","Legacy"],
-#     ["itsusmpdd01m.jnj.com","Legacy"], 
-#     ["itsusmpdd02m.jnj.com","Legacy"]
-# ] 
+ddlist=[
+    ["itssgsgdd01m.jnj.com","SDDC"],
+    ["itsusradd03m.jnj.com","Legacy"], 
+    ["itsusradd04m.jnj.com","Legacy"],
+    ["itsusmpdd01m.jnj.com","Legacy"], 
+    ["itsusmpdd02m.jnj.com","Legacy"]
+] 
 
 
 # Dictionary lookup for DD locations
@@ -351,8 +352,8 @@ parser.add_argument('--ddUsername', required=True)
 # When using nargs='?', ene argument will be consumed from the command line if possible, 
 #   and produced as a single item. If no command-line argument is present, the value 
 #   from default will be produced
-parser.add_argument('--failureLimit', nargs='?', default=3)
-parser.add_argument('--ddTimeout', nargs='?', default=300)
+parser.add_argument('--failureLimit', nargs='?', default=3, type=int)
+parser.add_argument('--ddTimeout', nargs='?', default=300, type=int)
 
 # Get the object returned by parse_args
 args = parser.parse_args()
