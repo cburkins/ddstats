@@ -51,19 +51,18 @@ ddlist=[
     ["itschzwdd01m.jnj.com","Legacy"],
     ["itschzwdd02m.jnj.com","Legacy"],
     ["itsusmpdd01m.jnj.com","Legacy"], 
-    ["itsusmpdd02m.jnj.com","Legacy"],
-    ["itssgsgdd01m.jnj.com","SDDC"],
-    ["itsmycydd01m.jnj.com","SDDC"]
+    ["itsusmpdd02m.jnj.com","Legacy"]
+#    ["itssgsgdd01m.jnj.com","SDDC"],
+#    ["itsmycydd01m.jnj.com","SDDC"]
 ]
 
 # Short list used for testing
-ddlist=[
-    ["itssgsgdd01m.jnj.com","SDDC"],
-    ["itsusradd03m.jnj.com","Legacy"], 
-    ["itsusradd04m.jnj.com","Legacy"],
-    ["itsusmpdd01m.jnj.com","Legacy"], 
-    ["itsusmpdd02m.jnj.com","Legacy"]
-] 
+# ddlist=[
+#     ["itsusradd03m.jnj.com","Legacy"], 
+#     ["itsusradd04m.jnj.com","Legacy"],
+#     ["itsusmpdd01m.jnj.com","Legacy"], 
+#     ["itsusmpdd02m.jnj.com","Legacy"]
+# ] 
 
 
 # Dictionary lookup for DD locations
@@ -78,11 +77,19 @@ city_location = {'be': 'Beerse',
 
 # Declare an emtpy dictionary
 dd_info_per_type = {}
+dd_info_per_city = {}
 
 # Zero out appropiate records so we can accumulate in them (they need to be set at zero)
 for ddrecord in ddlist:
     # It runs repeatedly, but really just zeros out two records (SDDC and Legacy)
     dd_info_per_type[ddrecord[1]] = {'ingested': 0.0,
+                                     'written' : 0.0,
+                                     'dedupe_ratio': 0.0}
+
+# Zero out appropiate records so we can accumulate in them (they need to be set at zero)
+for city in ["Beerse", "Raritan", "Sungard", "MOPs", "Zuchwil", "Sngapor", "Malaysa"]:
+    # It runs repeatedly, but really just zeros out a few records (Beerse, Raritan, etc)
+    dd_info_per_city[city] = {'ingested': 0.0,
                                      'written' : 0.0,
                                      'dedupe_ratio': 0.0}
 
@@ -418,17 +425,27 @@ for ddrecord in ddlist:
 
         else:
             # Successfully got info from Data Domain
-            # Simple numbering used for printout
+
+            # Simple line numbering used for printout
             dd_number += 1
+
             # Increment our running accumulations
             cum_ingest_TB += total_ingest_TB
             cum_written_TB += total_written_TB
+
             # Extract city code from DD Name
             city_code = ddname[5:7]
-            # Update the cumulative totals for type (i.e. Legacy vs SDDC)
+
+            # Update the cumulative totals by type (i.e. Legacy vs SDDC)
             dd_info_per_type[ddtype]['ingested'] += total_ingest_TB
             dd_info_per_type[ddtype]['written'] += total_written_TB
             dd_info_per_type[ddtype]['dedupe_ratio'] = dd_info_per_type[ddtype]['ingested'] / dd_info_per_type[ddtype]['written']
+
+            # Update the cumulative totals by city (i.e. Raritan, Beerse, Sungard, etc)
+            city = city_location[city_code];
+            dd_info_per_city[city]['ingested'] += total_ingest_TB
+            dd_info_per_city[city]['written'] += total_written_TB
+            dd_info_per_city[city]['dedupe_ratio'] = dd_info_per_city[city]['ingested'] / dd_info_per_city[city]['written']
 
             # End timer and print elapsed time
             end = time.time()
@@ -485,16 +502,36 @@ print "          Totals                         %8.1f TB %8.1f TB     %.1fx" % (
 # Print out the accumulated totals for DD type (i.e. Legacy vs SDDC)
 print "\n\n\nTotals by DD Type\n--------------------------------------"
 for type in dd_info_per_type:
+
     # Compute the percentage space saved, being careful to check for division by zero
     try:
         pct_saved = ((dd_info_per_type[type]['ingested'] - dd_info_per_type[type]['written']) / dd_info_per_type[type]['ingested']) * 100.0  
     except ZeroDivisionError:
         pct_saved = 0.0
+
     # Print out results for this type (e.g. Legacy for SDDC)
     print "%10s %7.1f TB  %7.1f TB  %5.1fx  %4.1f %%" % (type, 
                                                          dd_info_per_type[type]['ingested'], 
                                                          dd_info_per_type[type]['written'], 
                                                          dd_info_per_type[type]['dedupe_ratio'],
+                                                         pct_saved) 
+print
+
+# Print out the accumulated totals for DD by city (i.e. Beerse, Raritan, etc)
+print "\n\n\nTotals by Location\n--------------------------------------"
+for city in dd_info_per_city:
+
+    # Compute the percentage space saved, being careful to check for division by zero
+    try:
+        pct_saved = ((dd_info_per_city[city]['ingested'] - dd_info_per_city[city]['written']) / dd_info_per_city[city]['ingested']) * 100.0  
+    except ZeroDivisionError:
+        pct_saved = 0.0
+
+    # Print out results for this city (e.g. Raritan, Beerse, etc)
+    print "%10s %7.1f TB  %7.1f TB  %5.1fx  %4.1f %%" % (city, 
+                                                         dd_info_per_city[city]['ingested'], 
+                                                         dd_info_per_city[city]['written'], 
+                                                         dd_info_per_city[city]['dedupe_ratio'],
                                                          pct_saved) 
 print
 
