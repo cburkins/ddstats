@@ -201,10 +201,10 @@ def dd_getinfo (username, password, ddname):
 
         # If you've never accessed a device before, then you might get this login
         #
-        # The authenticity of host 'itsuscsdd06m.jnj.com (10.28.193.38)' can't be established.
-        # RSA key fingerprint is c0:b1:d4:09:71:5c:c5:92:5e:06:31:2d:84:c7:3b:f8.
+        # The authenticity of host '<device-hostname>' can't be established.
+        # RSA key fingerprint is <key-fingerprint>.
         # Are you sure you want to continue connecting (yes/no)? yes
-        # Warning: Permanently added 'itsuscsdd06m.jnj.com,10.28.193.38' (RSA) to the list of known hosts.
+        # Warning: Permanently added '<device-hostname>' (RSA) to the list of known hosts.
         # Data Domain OS
         # Password: 
 
