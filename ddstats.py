@@ -51,7 +51,7 @@ ddlist=[
     ["itschzwdd01m.jnj.com","Legacy"],
     ["itschzwdd02m.jnj.com","Legacy"],
     ["itsusmpdd01m.jnj.com","Legacy"], 
-    ["itsusmpdd02m.jnj.com","Legacy"]
+    ["itsusmpdd02m.jnj.com","Legacy"],
 #    ["itssgsgdd01m.jnj.com","SDDC"],
 #    ["itsmycydd01m.jnj.com","SDDC"]
 ]
@@ -211,7 +211,7 @@ def dd_getinfo (username, password, ddname):
         # Create appropiate SSH command to access the DataDomain
         ssh_command = "ssh -l \'na\\%s\' -o StrictHostKeyChecking=no %s" % (username, ddname)
 
-        # ssh_command should be something like 'ssh -l \'na\\admin_cburkin\' itsusmpdd01m.jnj.com'
+        # ssh_command should be something like 'ssh -l \'na\\admin_cburkin\' <FQ-DNS-NAME>'
         try: 
             child = pexpect.spawn(ssh_command)
         except:
@@ -231,7 +231,7 @@ def dd_getinfo (username, password, ddname):
         #
         # Welcome to Data Domain OS 5.4.2.1-423209
         # ----------------------------------------
-        # NA\admin_cburkin@itsusmpdd01# 
+        # NA\admin_cburkin@<short-host-name># 
 
 
 
@@ -257,7 +257,7 @@ def dd_getinfo (username, password, ddname):
         else:
             raise ValueError("DD Didn't see Welcome Message")
 
-        # Look for the proper prmopt, should look like this : NA\admin_cburkin@itsusmpdd01# 
+        # Look for the proper prmopt, should look like this : NA\admin_cburkin@<short-hostname># 
         # Create a regular expression based on the given username (passed in)
         prompt_re = "...%s@..*# " % (username)
 
