@@ -51,18 +51,17 @@ ddlist=[
     ["itschzwdd01m.jnj.com","Legacy"],
     ["itschzwdd02m.jnj.com","Legacy"],
     ["itsusmpdd01m.jnj.com","Legacy"], 
-    ["itsusmpdd02m.jnj.com","Legacy"],
+    ["itsusmpdd02m.jnj.com","Legacy"]
 #    ["itssgsgdd01m.jnj.com","SDDC"],
 #    ["itsmycydd01m.jnj.com","SDDC"]
 ]
 
 # Short list used for testing
-# ddlist=[
-#     ["itsusradd03m.jnj.com","Legacy"], 
-#     ["itsusradd04m.jnj.com","Legacy"],
-#     ["itsusmpdd01m.jnj.com","Legacy"], 
-#     ["itsusmpdd02m.jnj.com","Legacy"]
-# ] 
+#ddlist=[
+#    ["itsuscsdd05m.jnj.com","Legacy"], 
+#    ["itsusradd03m.jnj.com","Legacy"], 
+#    ["itsusradd04m.jnj.com","Legacy"]
+#] 
 
 
 # Dictionary lookup for DD locations
@@ -145,7 +144,7 @@ def get_fields(stream, command, prompt_re, search_string, field_list):
 
     # Look for the prompt again
     try:
-        stream.expect(prompt_re, timeout=5)
+        stream.expect(prompt_re, timeout=60)
     except:
         # If there was an excpetion.....
         raise ValueError("Sent filesys command, didn't recognize command prompt afterwards")
