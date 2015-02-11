@@ -52,8 +52,8 @@ ddlist=[
     ["itschzwdd02m.jnj.com","Legacy"],
     ["itsusmpdd01m.jnj.com","Legacy"], 
     ["itsusmpdd02m.jnj.com","Legacy"]
-#    ["itssgsgdd01m.jnj.com","SDDC"],
-#    ["itsmycydd01m.jnj.com","SDDC"]
+    ["itssgsgdd01m.jnj.com","SDDC"],
+    ["itsmycydd01m.jnj.com","SDDC"]
 ]
 
 # Short list used for testing
