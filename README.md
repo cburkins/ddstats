@@ -21,7 +21,16 @@ You may need to install the following software
 
 This script was designed to run against EMC Data Domain 990 appliances, though I'm guessing it will work against many other Data Domain models as well.
 
-It was test against DDOS 5.4
+It was tested against DDOS 5.4
 
- 
+###Code Details###
+
+This is a python script.  It uses ssh and expect to log into each Data Domain, run a few commands, gather the output, parse it, and format the data into a readable table.
+
+The following commands are run:
+
+- filesys show compression
+- filesys show space
+
+
 
