@@ -5,7 +5,7 @@
 # Date: Originally created in 2014
 # NOTE: The next line (version) should be un-commented (variable is printed at the end of code)
 #
-version=1.01
+version=1.02
 #
 # Purpose: Pulls statistics from DataDomain appliances.  The assumption is that you
 # don't have API access to the devices, simply SSH login.  Uses "expect" to login,
@@ -18,6 +18,7 @@ version=1.01
 # -----------------------
 # Rather than hard-code DD names into script, read them from an input file
 # Sort the output by a specified column
+# Add arg to limit the number of DD's queried (good for quicker testing)
 # 
 # --------------------------------------------------------------------------------------
 
