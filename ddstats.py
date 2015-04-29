@@ -2,13 +2,26 @@
 
 # --------------------------------------------------------------------------------------
 # Author: Chad Burkins
-# Date: 2014
+# Date: Originally created in 2014
+# NOTE: The next line (version) should be un-commented (variable is printed at the end of code)
+#
+version=1.01
+#
 # Purpose: Pulls statistics from DataDomain appliances.  The assumption is that you
 # don't have API access to the devices, simply SSH login.  Uses "expect" to login,
 # pull statistics, and summarize.
+#
+# v1.00: Code has been developed/used for a while, but decided to version all changes
+# v1.01: Added feature to optionally hard-code username/pasword into script
+#
+# Ideas for the future
+# -----------------------
+# Rather than hard-code DD names into script, read them from an input file
+# Sort the output by a specified column
+# 
 # --------------------------------------------------------------------------------------
 
-version=1.1
+
 
 # Requires Ubuntu package "python-dnspython"
 import dns.resolver
