@@ -8,6 +8,8 @@
 # pull statistics, and summarize.
 # --------------------------------------------------------------------------------------
 
+version=1.1
+
 # Requires Ubuntu package "python-dnspython"
 import dns.resolver
 
@@ -337,6 +339,7 @@ dd_number=0
 cum_ingest_TB=0.0
 cum_written_TB=0.0
 data=[]
+password=""
 
 # Create ArgumentParser object
 # By default, program name (shown in 'help' function) will be the same as the name of this file
@@ -351,8 +354,9 @@ parser = argparse.ArgumentParser(description='Queries DataDomain appliances for 
 parser.add_argument('-v', dest='verbose', action='store_true', help='verbose_mode')
 
 # Command-line Parameters                                                                                                                    
-parser.add_argument('--ddUsername', required=True)
-#parser.add_argument('--ddUsername', nargs='?', default="admin_cburkin")
+#parser.add_argument('--ddUsername', required=True)
+default_user="admin_cburkin"
+parser.add_argument('--ddUsername', nargs='?', default=default_user)
 
 # Optional arguments
 # When using nargs='?', ene argument will be consumed from the command line if possible, 
@@ -374,8 +378,12 @@ vprint("ddTimeout = %d seconds" % args.ddTimeout)
 vprint("verbose = %s" % args.verbose)
 vprint(" ")
 
-# Get password from user
-password = getpass.getpass("Data Domain Password: ")
+# Get password for the specified DataDomin user account
+# NOTE: To hardcode a password, just uncomment next line
+# password="put-password-here"
+if (len(password) < 4):
+    # It appears that no password has been given to us, interactively query the user
+    password = getpass.getpass("Data Domain Password for %s: " % args.ddUsername)
 print
  
 # Create headers for each column of data
@@ -542,6 +550,10 @@ if failures:
         print "   %s (%s)" % (failure[0], failure[1])
     print
     print
+
+# Print out the version
+print "Version = %s" % version
+print
 
 # --------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------
