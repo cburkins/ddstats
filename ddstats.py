@@ -13,6 +13,7 @@ version=1.02
 #
 # v1.00: Code has been developed/used for a while, but decided to version all changes
 # v1.01: Added feature to optionally hard-code username/pasword into script
+# v1.02: Corrected divide by zero problem when Data Domain has no data on it (e.g. Ashburn)
 #
 # Ideas for the future
 # -----------------------
@@ -69,16 +70,24 @@ ddlist=[
     ["itsusmpdd01m.jnj.com","Legacy"], 
     ["itsusmpdd02m.jnj.com","Legacy"],
     ["itssgsgdd01m.jnj.com","SDDC"],
-    ["itsmycydd01m.jnj.com","SDDC"]
+    ["itsmycydd01m.jnj.com","SDDC"],
+    ["itsusmpsdddd01m.jnj.com","SDDC"],
+    ["itsusmpsdddq01m.jnj.com","SDDC"],
+    ["itsusmpsdddq51m.jnj.com","SDDC"],
+    ["itsusrasddd001m.jnj.com","SDDC"],
+    ["itsusrasddd501m.jnj.com","SDDC"],
+    ["itsusabsddd001m.jnj.com","SDDC"],
+    ["itsusabsddd501m.jnj.com","SDDC"],
+    ["itsbebesddd01m.jnj.com","SDDC"],
+    ["itsgbhhsddd01m.jnj.com","SDDC"]
 ]
 
 # Short list used for testing
-#ddlist=[
-#    ["itsuscsdd05m.jnj.com","Legacy"], 
-#    ["itsusradd03m.jnj.com","Legacy"], 
-#    ["itsusradd04m.jnj.com","Legacy"]
-#] 
-
+# ddlist=[
+#     ["itsuscsdd05m.jnj.com","Legacy"], 
+#     ["itsusradd03m.jnj.com","Legacy"], 
+#     ["itsusradd04m.jnj.com","Legacy"]
+# ] 
 
 # Dictionary lookup for DD locations
 city_location = {'be': 'Beerse',
@@ -87,6 +96,8 @@ city_location = {'be': 'Beerse',
                  'mp': 'MOPs',
                  'zw': 'Zuchwil',
                  'sg': 'Sngapor',
+                 'hh': 'HemlHemp',
+                 'ab': 'Ashburn',
                  'cy': 'Malaysa'}
 
 
@@ -102,7 +113,7 @@ for ddrecord in ddlist:
                                      'dedupe_ratio': 0.0}
 
 # Zero out appropiate records so we can accumulate in them (they need to be set at zero)
-for city in ["Beerse", "Raritan", "Sungard", "MOPs", "Zuchwil", "Sngapor", "Malaysa"]:
+for city in ["Beerse", "Raritan", "Sungard", "MOPs", "Zuchwil", "Sngapor", "Malaysa", "Ashburn", "HemlHemp"]:
     # It runs repeatedly, but really just zeros out a few records (Beerse, Raritan, etc)
     dd_info_per_city[city] = {'ingested': 0.0,
                                      'written' : 0.0,
@@ -466,7 +477,12 @@ for ddrecord in ddlist:
             city = city_location[city_code];
             dd_info_per_city[city]['ingested'] += total_ingest_TB
             dd_info_per_city[city]['written'] += total_written_TB
-            dd_info_per_city[city]['dedupe_ratio'] = dd_info_per_city[city]['ingested'] / dd_info_per_city[city]['written']
+            if dd_info_per_city[city]['written'] == 0:
+                # avoid division by zero
+                dd_info_per_city[city]['dedupe_ratio'] = 0
+            else:
+                # compute the dedupe ratio 
+                dd_info_per_city[city]['dedupe_ratio'] = dd_info_per_city[city]['ingested'] / dd_info_per_city[city]['written']
 
             # End timer and print elapsed time
             end = time.time()
