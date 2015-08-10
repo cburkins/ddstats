@@ -285,7 +285,8 @@ def dd_getinfo (username, password, ddname):
 
         # Look for the proper prmopt, should look like this : NA\admin_cburkin@<short-hostname># 
         # Create a regular expression based on the given username (passed in)
-        prompt_re = "...%s@..*# " % (username)
+        # Update(8/10/2015): Account for either "#" or ">" at end of command prompt
+        prompt_re = "...%s@..*[#>] " % (username)
 
         try:
             child.expect(prompt_re, timeout=5)
