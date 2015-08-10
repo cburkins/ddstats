@@ -383,6 +383,7 @@ parser.add_argument('-v', dest='verbose', action='store_true', help='verbose_mod
 #parser.add_argument('--ddUsername', required=True)
 default_user="admin_cburkin"
 parser.add_argument('--ddUsername', nargs='?', default=default_user)
+parser.add_argument('--ddPassword', nargs='?', default="")
 
 # Optional arguments
 # When using nargs='?', ene argument will be consumed from the command line if possible, 
@@ -407,11 +408,14 @@ vprint(" ")
 # Get password for the specified DataDomin user account
 # NOTE: To hardcode a password, just uncomment next line
 # password="put-password-here"
-if (len(password) < 4):
+
+
+if (len(args.ddPassword) < 4):
     # It appears that no password has been given to us, interactively query the user
-    password = getpass.getpass("Data Domain Password for %s: " % args.ddUsername)
+    args.ddPassword = getpass.getpass("Data Domain Password for %s: " % args.ddUsername)
 print
  
+
 # Create headers for each column of data
 data.append(["##", "DD-Name", "City","Type","Ingest","Written","DeDupe","%-Saved","D-Total","D-Used","D-Avail","D-%Used"])
 
@@ -442,7 +446,7 @@ for ddrecord in ddlist:
 
         # Try to log into Data Domain, send command, and extra data
         try:
-            total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used = dd_getinfo(args.ddUsername, password, ddname)
+            total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used = dd_getinfo(args.ddUsername, args.ddPassword, ddname)
         except ValueError, e:
 
             # For some reason, the login, command, and data extract failed
