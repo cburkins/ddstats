@@ -5,7 +5,7 @@
 # Date: Originally created in 2014
 # NOTE: The next line (version) should be un-commented (variable is printed at the end of code)
 #
-version=1.02
+version=1.03
 #
 # Purpose: Pulls statistics from DataDomain appliances.  The assumption is that you
 # don't have API access to the devices, simply SSH login.  Uses "expect" to login,
@@ -14,12 +14,14 @@ version=1.02
 # v1.00: Code has been developed/used for a while, but decided to version all changes
 # v1.01: Added feature to optionally hard-code username/pasword into script
 # v1.02: Corrected divide by zero problem when Data Domain has no data on it (e.g. Ashburn)
+# v1.03: Accomodate change in DDOS 5.6, the password prompt at login is now different
+#        Also account for division by zero 
 #
 # Ideas for the future
 # -----------------------
-# Rather than hard-code DD names into script, read them from an input file
-# Sort the output by a specified column
-# Add arg to limit the number of DD's queried (good for quicker testing)
+# 1) Rather than hard-code DD names into script, read them from an input file
+# 2) Sort the output by a specified column
+# 3) Add arg to limit the number of DD's queried (good for quicker testing)
 # 
 # --------------------------------------------------------------------------------------
 
@@ -82,12 +84,11 @@ ddlist=[
     ["itsgbhhsddd01m.jnj.com","SDDC"]
 ]
 
-# Short list used for testing
-# ddlist=[
-#     ["itsuscsdd05m.jnj.com","Legacy"], 
-#     ["itsusradd03m.jnj.com","Legacy"], 
-#     ["itsusradd04m.jnj.com","Legacy"]
-# ] 
+#Short list used for testing
+ddlist=[
+    ["itsusradd04m.jnj.com","Legacy"],
+    ["itsusabsddd001m.jnj.com","SDDC"]
+] 
 
 # Dictionary lookup for DD locations
 city_location = {'be': 'Beerse',
@@ -190,7 +191,7 @@ def get_fields(stream, command, prompt_re, search_string, field_list):
             # Remove the trailing newline
             line = line.rstrip()
             
-            # Need to count up files, because if this DD is empty, the fiels are blank.
+            # Need to count up fields, because if this DD is empty, the fiels are blank.
             if len(line.split()) < 5:
                 # Bad data, assuming 0's for all fields
                 for field in field_list:
@@ -246,7 +247,8 @@ def dd_getinfo (username, password, ddname):
         # Wait for password prompt, then send password
         # Default timeout is 30 seconds, but devices in Asia seem to be taking longer than that
         try:
-            child.expect ('Password:', timeout=args.ddTimeout)
+#            child.expect ('Password:|..*s password:', timeout=args.ddTimeout)
+            child.expect ('..*assword:', timeout=args.ddTimeout)
         except:
             raise ValueError("Timeout waiting for password prompt")
 
@@ -476,8 +478,11 @@ for ddrecord in ddlist:
             # Update the cumulative totals by type (i.e. Legacy vs SDDC)
             dd_info_per_type[ddtype]['ingested'] += total_ingest_TB
             dd_info_per_type[ddtype]['written'] += total_written_TB
-            dd_info_per_type[ddtype]['dedupe_ratio'] = dd_info_per_type[ddtype]['ingested'] / dd_info_per_type[ddtype]['written']
-
+            try:
+                dd_info_per_type[ddtype]['dedupe_ratio'] = dd_info_per_type[ddtype]['ingested'] / dd_info_per_type[ddtype]['written']
+            except ZeroDivisionError:
+                dd_info_per_type[ddtype]['dedupe_ratio'] = 0.0
+                
             # Update the cumulative totals by city (i.e. Raritan, Beerse, Sungard, etc)
             city = city_location[city_code];
             dd_info_per_city[city]['ingested'] += total_ingest_TB
