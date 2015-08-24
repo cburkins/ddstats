@@ -85,10 +85,11 @@ ddlist=[
 ]
 
 #Short list used for testing
-ddlist=[
-    ["itsusradd04m.jnj.com","Legacy"],
-    ["itsusabsddd001m.jnj.com","SDDC"]
-] 
+# ddlist=[
+#     ["itsusradd04m.jnj.com","Legacy"],
+#     ["itsusabsddd001m.jnj.com","SDDC"]
+# ] 
+
 
 # Dictionary lookup for DD locations
 city_location = {'be': 'Beerse',
@@ -246,9 +247,12 @@ def dd_getinfo (username, password, ddname):
 
         # Wait for password prompt, then send password
         # Default timeout is 30 seconds, but devices in Asia seem to be taking longer than that
+        # DDOS 5.4 password prompt: "^Password"
+        # DDOS 5.6 password prompt: "^na\admin_cburkin@itsusabsddd001m.jnj.com's password:"
+        # You need to account for both.   You could just search for "assword:" I suppose.
+        # But I like my way better.   Expliclity search for both
         try:
-#            child.expect ('Password:|..*s password:', timeout=args.ddTimeout)
-            child.expect ('..*assword:', timeout=args.ddTimeout)
+            child.expect ('Password:|..*\'s password:', timeout=args.ddTimeout)
         except:
             raise ValueError("Timeout waiting for password prompt")
 
