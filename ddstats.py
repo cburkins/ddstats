@@ -5,7 +5,7 @@
 # Date: Originally created in 2014
 # NOTE: The next line (version) should be un-commented (variable is printed at the end of code)
 #
-version=1.03
+version=1.04
 #
 # Purpose: Pulls statistics from DataDomain appliances.  The assumption is that you
 # don't have API access to the devices, simply SSH login.  Uses "expect" to login,
@@ -16,6 +16,7 @@ version=1.03
 # v1.02: Corrected divide by zero problem when Data Domain has no data on it (e.g. Ashburn)
 # v1.03: Accomodate change in DDOS 5.6, the password prompt at login is now different
 #        Also account for division by zero 
+# v1.04: Gather and display DDOS version
 #
 # Ideas for the future
 # -----------------------
@@ -85,10 +86,10 @@ ddlist=[
 ]
 
 #Short list used for testing
-# ddlist=[
-#     ["itsusradd04m.jnj.com","Legacy"],
-#     ["itsusabsddd001m.jnj.com","SDDC"]
-# ] 
+#ddlist=[
+#    ["itsusradd04m.jnj.com","Legacy"],
+#    ["itsusabsddd001m.jnj.com","SDDC"]
+#] 
 
 
 # Dictionary lookup for DD locations
@@ -156,14 +157,15 @@ def nslookup_test(dnsname):
 #           stream: previously opened "Expect" command stream
 #          command: that we should send to the above "Expect" stream
 #        prompt_re: Regular expression that defines a healthy command prompt for the device
+#       num_fields: Expected number of fileds in this line of output
 #    search_string: Another RE identify which line of output we're hunting for 
-#       field_list: list of numbers denoting which fields (within the desired line) to pass back
+#       field_list: list of numbers denoting fields (within desired line) to pass back (starts at 0)
 #  Descr:
 #     Sends a given command to an active "Expect" stream, hunts for the desired regular 
 #     expression within the output, and passes back the named fields
 # Output: list of desired fields from the command output
 
-def get_fields(stream, command, prompt_re, search_string, field_list):
+def get_fields(stream, command, prompt_re, num_fields, search_string, field_list):
 
     # Send command to DD
     try:
@@ -171,7 +173,7 @@ def get_fields(stream, command, prompt_re, search_string, field_list):
     except:
         raise ValueError("Failed to send command to pexpect")
 
-    # Look for the prompt again
+    # Look for the system prompt (which indicates command was run successfully)
     try:
         stream.expect(prompt_re, timeout=60)
     except:
@@ -189,11 +191,13 @@ def get_fields(stream, command, prompt_re, search_string, field_list):
         # When you find the desired line (e.g. Currently Used), then parse the fields
         if re.search(search_string, line):
             
+            vprint("output line(%d) = %s" % (num_fields, line))
+
             # Remove the trailing newline
             line = line.rstrip()
             
-            # Need to count up fields, because if this DD is empty, the fiels are blank.
-            if len(line.split()) < 5:
+            # Verify minimum number of fileds (within line) for this to be a valid line (otherwise return 0's)
+            if len(line.split()) < num_fields:
                 # Bad data, assuming 0's for all fields
                 for field in field_list:
                     return_list.append("0")
@@ -314,7 +318,8 @@ def dd_getinfo (username, password, ddname):
         # Split this section of code off to a subroutine, passing in the spawned expect stream
         a,b,c = get_fields(child, 
                            "filesys show compression", 
-                           prompt_re, 
+                           prompt_re,
+                           7,
                            '^Currently Used:..*$',
                            [2,3,6])
         # Convert returns strings into proper variable types, and convert from GB to TB where appropiate
@@ -341,7 +346,8 @@ def dd_getinfo (username, password, ddname):
         # Split this section of code off to a subroutine, passing in the spawned expect stream
         a,b,c,d = get_fields(child, 
                              "filesys show space", 
-                             prompt_re, 
+                             prompt_re,
+                             7,
                              '^/data: post-comp..*$',
                              [2,3,4,5])
         # Convert returns strings into proper variable types, and convert from GB to TB where appropiate
@@ -355,7 +361,16 @@ def dd_getinfo (username, password, ddname):
         else:
             pct_saved = 0
 
-        return total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used
+        # Set a fake DDOS version for now
+        ddos_ver = 1.0
+        a,ddos_ver = get_fields(child,
+                   "system show version",
+                   prompt_re,
+                   4,
+                   '^Data Domain OS',
+                   [2,3]);
+                   
+        return total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used, ddos_ver
 
 # ---------------------------------------------------------------------------------------------
 
@@ -373,7 +388,7 @@ cum_written_TB=0.0
 data=[]
 password=""
 
-# Create ArgumentParser object
+# Parse command-line arguments (Create ArgumentParser object)
 # By default, program name (shown in 'help' function) will be the same as the name of this file
 # Program name either comes from sys.argv[0] (invocation of this program) or from prog= argument to ArgumentParser
 # epilog= argument will be display last in help usage (strips out newlines)
@@ -421,9 +436,8 @@ if (len(args.ddPassword) < 4):
     args.ddPassword = getpass.getpass("Data Domain Password for %s: " % args.ddUsername)
 print
  
-
 # Create headers for each column of data
-data.append(["##", "DD-Name", "City","Type","Ingest","Written","DeDupe","%-Saved","D-Total","D-Used","D-Avail","D-%Used"])
+data.append(["##", "DD-Name", "City","Type","Ingest","Written","DeDupe","%-Saved","D-Total","D-Used","D-Avail","D-%Used", "DDOS Version"])
 
 # Small header
 print "Contacting all DD's"
@@ -446,13 +460,13 @@ for ddrecord in ddlist:
     # Initalize the city_code
     city_code=''
 
-    # if we see more than 2 consecutive failures, I'm guessing user entered their password wrong
+    # Consecutive failures might indicate user entered their password wrong
     # No sense continuing, because will just registser a password failure on *every* device
     if consecutive_failure_count < args.failureLimit:
 
-        # Try to log into Data Domain, send command, and extra data
+        # Try to log into Data Domain, send a query command, and extract data
         try:
-            total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used = dd_getinfo(args.ddUsername, args.ddPassword, ddname)
+            total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used, ddos_ver = dd_getinfo(args.ddUsername, args.ddPassword, ddname)
         except ValueError, e:
 
             # For some reason, the login, command, and data extract failed
@@ -513,7 +527,8 @@ for ddrecord in ddlist:
                          "%.1f TB" % space_total_size_TB, 
                          "%.1f TB" % space_total_used_TB, 
                          "%.1f TB" % space_total_avail_TB, 
-                         space_pct_used])
+                         space_pct_used,
+                         ddos_ver])
             
 
 
