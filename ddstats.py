@@ -5,7 +5,7 @@
 # Date: Originally created in 2014
 # NOTE: The next line (version) should be un-commented (variable is printed at the end of code)
 #
-version=1.04
+version=1.05
 #
 # Purpose: Pulls statistics from DataDomain appliances.  The assumption is that you
 # don't have API access to the devices, simply SSH login.  Uses "expect" to login,
@@ -17,6 +17,7 @@ version=1.04
 # v1.03: Accomodate change in DDOS 5.6, the password prompt at login is now different
 #        Also account for division by zero 
 # v1.04: Gather and display DDOS version
+# v1.05: Minor correction to the call to get DDOS version
 #
 # Ideas for the future
 # -----------------------
@@ -86,10 +87,10 @@ ddlist=[
 ]
 
 #Short list used for testing
-#ddlist=[
-#    ["itsusradd04m.jnj.com","Legacy"],
-#    ["itsusabsddd001m.jnj.com","SDDC"]
-#] 
+ddlist=[
+   ["itsusradd04m.jnj.com","Legacy"],
+   ["itsusabsddd001m.jnj.com","SDDC"]
+] 
 
 
 # Dictionary lookup for DD locations
@@ -361,14 +362,16 @@ def dd_getinfo (username, password, ddname):
         else:
             pct_saved = 0
 
-        # Set a fake DDOS version for now
+        # Set a default DDOS version in case the query fails
         ddos_ver = 1.0
-        a,ddos_ver = get_fields(child,
+        # Query data domain for DDOS version
+        # NOTE: get_fields always returns a list, so in this case, it's a list of one
+        (ddos_ver,) = get_fields(child,
                    "system show version",
                    prompt_re,
                    4,
                    '^Data Domain OS',
-                   [2,3]);
+                   [3]);
                    
         return total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used, ddos_ver
 
