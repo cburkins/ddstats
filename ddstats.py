@@ -5,7 +5,7 @@
 # Date: Originally created in 2014
 # NOTE: The next line (version) should be un-commented (variable is printed at the end of code)
 #
-version=1.05
+version=1.06
 #
 # Purpose: Pulls statistics from DataDomain appliances.  The assumption is that you
 # don't have API access to the devices, simply SSH login.  Uses "expect" to login,
@@ -18,6 +18,7 @@ version=1.05
 #        Also account for division by zero 
 # v1.04: Gather and display DDOS version
 # v1.05: Minor correction to the call to get DDOS version
+# v1.06: Show number of shelves per Data Domain appliance
 #
 # Ideas for the future
 # -----------------------
@@ -87,10 +88,10 @@ ddlist=[
 ]
 
 #Short list used for testing
-ddlist=[
-   ["itsusradd04m.jnj.com","Legacy"],
-   ["itsusabsddd001m.jnj.com","SDDC"]
-] 
+# ddlist=[
+#    ["itsusradd04m.jnj.com","Legacy"],
+#    ["itsusabsddd001m.jnj.com","SDDC"]
+# ] 
 
 
 # Dictionary lookup for DD locations
@@ -215,6 +216,54 @@ def get_fields(stream, command, prompt_re, num_fields, search_string, field_list
        
 # ---------------------------------------------------------------------------------------------
 
+#  Input: 
+#           stream: previously opened "Expect" command stream
+#        prompt_re: Regular expression that defines a healthy command prompt for the device
+#  Descr:
+#     Sends a command to query shelves to an active "Expect" stream, and counts up the
+#     number of shelves.
+# Output: single number (count of the number of ES30 shelves
+
+
+def getNumShelves(stream, prompt_re):
+
+    # Initialize the shelf count to 0
+    shelfCount = 0
+
+    # Send command to DD to show number of shelves.  Output will look something like this
+    # Enclosure   Model No.   Serial No.       State    OEM Name   OEM Value   Capacity
+    # ---------   ---------   --------------   ------   --------   ---------   --------
+    # 1           DD990       4FA1736002       Online                          4 Slots
+    # 2           ES30        APM00142516492   Online                          15 Slots
+    # 3           ES30        APM00142460552   Online                          15 Slots
+    # 4           ES30        APM00142460551   Online                          15 Slots
+    try:
+        stream.sendline("enclosure show summary")
+    except:
+        raise ValueError("Failed to send command to pexpect")
+
+    # Look for the system prompt (which indicates command was run successfully)
+    try:
+        stream.expect(prompt_re, timeout=60)
+    except:
+        # If there was an excpetion.....
+        raise ValueError("Sent command, didn't recognize command prompt afterwards")
+
+    output = stream.before.splitlines(True)
+
+    # Line-by-line, parse through the output from the command (e.g "filesys show compression")
+    for line in output:
+
+        # Count up the number of lines which contain ES30
+        if re.search("..*ES30..*Slots..*", line):
+            vprint("output line = %s" % (line))
+            shelfCount = shelfCount + 1
+
+    vprint("Shelf Count = %d" % (shelfCount))
+    return shelfCount
+
+# ---------------------------------------------------------------------------------------------
+
 #  Input:
 #     username: username for login to Data Domain device
 #     password: Password for same account
@@ -269,7 +318,6 @@ def dd_getinfo (username, password, ddname):
         # Welcome to Data Domain OS 5.4.2.1-423209
         # ----------------------------------------
         # NA\admin_cburkin@<short-host-name># 
-
 
 
         # Check for a number of different scenarios
@@ -373,7 +421,9 @@ def dd_getinfo (username, password, ddname):
                    '^Data Domain OS',
                    [3]);
                    
-        return total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used, ddos_ver
+        shelfCount = getNumShelves(child, prompt_re)
+
+        return total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used, ddos_ver, shelfCount
 
 # ---------------------------------------------------------------------------------------------
 
@@ -440,7 +490,7 @@ if (len(args.ddPassword) < 4):
 print
  
 # Create headers for each column of data
-data.append(["##", "DD-Name", "City","Type","Ingest","Written","DeDupe","%-Saved","D-Total","D-Used","D-Avail","D-%Used", "DDOS Version"])
+data.append(["##", "DD-Name", "City","Type","Ingest","Written","DeDupe","%-Saved","D-Total","D-Used","D-Avail","D-%Used", "DDOS Version", "Shelf Count"])
 
 # Small header
 print "Contacting all DD's"
@@ -469,7 +519,7 @@ for ddrecord in ddlist:
 
         # Try to log into Data Domain, send a query command, and extract data
         try:
-            total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used, ddos_ver = dd_getinfo(args.ddUsername, args.ddPassword, ddname)
+            total_ingest_TB, total_written_TB, x_factor, pct_saved, space_total_size_TB, space_total_used_TB, space_total_avail_TB, space_pct_used, ddos_ver, shelfCount = dd_getinfo(args.ddUsername, args.ddPassword, ddname)
         except ValueError, e:
 
             # For some reason, the login, command, and data extract failed
@@ -531,7 +581,8 @@ for ddrecord in ddlist:
                          "%.1f TB" % space_total_used_TB, 
                          "%.1f TB" % space_total_avail_TB, 
                          space_pct_used,
-                         ddos_ver])
+                         ddos_ver,
+                         shelfCount])
             
 
 
