@@ -5,7 +5,7 @@
 # Date: Originally created in 2014
 # NOTE: The next line (version) should be un-commented (variable is printed at the end of code)
 #
-version=1.06
+version=1.07
 #
 # Purpose: Pulls statistics from DataDomain appliances.  The assumption is that you
 # don't have API access to the devices, simply SSH login.  Uses "expect" to login,
@@ -19,6 +19,7 @@ version=1.06
 # v1.04: Gather and display DDOS version
 # v1.05: Minor correction to the call to get DDOS version
 # v1.06: Show number of shelves per Data Domain appliance
+# v1.07: Added itsusradd08m 
 #
 # Ideas for the future
 # -----------------------
@@ -61,6 +62,7 @@ ddlist=[
     ["itsusradd05m.jnj.com","Legacy"], 
     ["itsusradd06m.jnj.com","Legacy"], 
     ["itsusradd07m.jnj.com","Legacy"], 
+    ["itsusradd08m.jnj.com","Legacy"],
     ["itsuscsdd01m.jnj.com","Legacy"], 
     ["itsuscsdd02m.jnj.com","Legacy"], 
     ["itsuscsdd03m.jnj.com","Legacy"], 
